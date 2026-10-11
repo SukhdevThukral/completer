@@ -67,6 +67,9 @@
         expanded = expanded === i ? null : i;
     }
 
+    function isglitchCommit(msg: string){
+        return msg === '' || msg.includes('DO NOT MERGE') || msg === 'please';
+    }
 
     onMount(() => {
         commits.forEach((_, i) => {
@@ -74,6 +77,12 @@
                 visible = [...visible, i];
             }, i* 120);
         });
+
+        setInterval(() => {
+            if (Math.random() < 0.15) {
+                triggerFlicker();
+            }
+        },  3000);
 
         const titles = [
             'completer',
@@ -94,17 +103,36 @@
 </script>
 
 
-<main class="min-h-screen bg-black text-green-400 font-mono p-8">
-    <div class="max-w-3xl mx-auto">
-        <p class="text-gray-500 mb-1">$ git log --oneline</p>
-        <div class="mt-4 space-y-2">
+<main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
+    <div class="max-w-5xl mx-auto">
+        <div class="mb-10">
+            <p class="text-gray-600 text-lg">~/projects/completer</p>
+            <p class="text-gray-500 text-xl mt-1">$ git log --oneline</p>
+        </div>
+        <div class="space-y-1">
             {#each commits as commit, i (i)}
                 {#if visible.includes(i)}
-                    <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
+                    <div class="group">
+                        <button 
+                            onclick={() => toggleExpand(i)}
+                            onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
+                            class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
+                                hover:bg-green-400/5 transition-colors cursor-pointer
+                                {commit.author === 'unknown' ? 'text-red-400' : ''}
+                                {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''}"
+                        >
+                            <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
+                            <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
+                                {commit.msg || '...'}
+                            </span>
+                            <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.data}</span>
+                        </button>
+                    </div>
+                    <!-- <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
                         <span class="text-yellow-600 shrink-0">{commit.hash}</span>
                         <span class="flex-1">{commit.msg || '...'}</span>
                         <span class="text-gray-600 shrink-0 text-sm">{commit.author}, {commit.date}</span>
-                    </div>
+                    </div> -->
                 {/if}
             {/each}
         </div>
