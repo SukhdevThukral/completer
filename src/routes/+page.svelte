@@ -26,3 +26,21 @@
         });
     })
 </script>
+
+
+<main class="min-h-screen bg-black text-green-400 font-mono p-8">
+    <div class="max-w-3xl mx-auto">
+        <p class="text-gray-500 mb-1">$ git log --oneline</p>
+        <div class="mt-4 space-y-2">
+            {#each commits as commit, i (commit.hash)}
+                {#if visible.includes(i)}
+                    <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
+                        <span class="text-yellow-600 shrink-0">{commit.hash}</span>
+                        <span class="flex-1">{commit.msg || '...'}</span>
+                        <span class="text-gray-600 shrink-0 text-sm">{commit.author}, {commit.date}</span>
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    </div>
+</main>
