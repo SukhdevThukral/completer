@@ -16,7 +16,57 @@
         {hash:'', msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am'},
     ];
 
-    let visible: number[] = [];
+    let visible = $state<number[]>([]);
+    let expanded = $state<number | null>(null);
+    let glitching = $state(false);
+    let flickering = $state(false);
+
+    let audioCtx: AudioContext | null = null;
+
+    function playStaticMusic(){
+        if (!audioCtx){
+            audioCtx = new AudioContext();
+        }
+
+        const ctx = audioCtx;
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.02, ctx.sampleRate);
+
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++){
+            data[i] = (Math.random() * 2 - 1 ) * 0.15;
+        }
+
+        const src = ctx.createBufferSource();
+        const gain = ctx.createGain();
+
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+        src.buffer = buf;
+        src.connect(gain);
+        src.connect(ctx.destination);
+        src.start();
+    }
+
+    function triggerGlitch() {
+        glitching = true;
+        playStaticMusic();
+        setTimeout(() => {
+            (glitching = false);
+        }, 800);
+    }
+
+    function triggerFlicker() {
+        flickering = true;
+        setTimeout(() => {
+            (flickering = false)
+        }, 150);
+    }
+
+    function toggleExpand(i: number){
+        expanded = expanded === i ? null : i;
+    }
+
 
     onMount(() => {
         commits.forEach((_, i) => {
@@ -24,6 +74,22 @@
                 visible = [...visible, i];
             }, i* 120);
         });
+
+        const titles = [
+            'completer',
+            'completer.',
+            'completer..',
+            'completer...',
+            'it knows..',
+            'completer',
+        ];
+
+        let t = 0;
+
+        setInterval(() => {
+            document.title = titles[t % titles.length];
+            t++;
+        }, 2000);
     })
 </script>
 
@@ -32,7 +98,7 @@
     <div class="max-w-3xl mx-auto">
         <p class="text-gray-500 mb-1">$ git log --oneline</p>
         <div class="mt-4 space-y-2">
-            {#each commits as commit, i (commit.hash)}
+            {#each commits as commit, i (i)}
                 {#if visible.includes(i)}
                     <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
                         <span class="text-yellow-600 shrink-0">{commit.hash}</span>
