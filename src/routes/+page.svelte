@@ -125,8 +125,14 @@
                             <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
                                 {commit.msg || '...'}
                             </span>
-                            <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.data}</span>
+                            <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.date}</span>
                         </button>
+
+                        {#if expanded === i && commit.diff}
+                            <div class="ml-32 mt-1 mb-3 border-l-2 border-green-900 pl-6 text-lg space-y-1">
+                                {#each commit.diff.split('\n') as line}
+                            </div>
+                        {/if}
                     </div>
                     <!-- <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
                         <span class="text-yellow-600 shrink-0">{commit.hash}</span>
