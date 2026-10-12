@@ -2,26 +2,48 @@
     import {onMount} from 'svelte';
 
     const commits = [
-        {hash:'', msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am'},
-        {hash:'', msg: '', author: 'dev', date: 'Oct 31, 3:11am'},
-        {hash:'', msg: 'please', author: 'dev', date: 'Oct 31, 2:84am'},
-        {hash:'', msg: 'removed the complete button lol, tasks are still completing smh', author: 'dev', date: 'Oct 31, 2:35am'},
-        {hash:'', msg: 'it only does it when im not observing it eh', author: 'dev', date: 'Oct 31, 1:38am'},
-        {hash:'', msg: 'reverted to v0.1. still same behavior.', author: 'dev', date: 'Oct 30, 11:51pm'},
-        {hash:'', msg: '!! DO NOT MERGE - investigating this rn', author: 'dev', date: 'Oct 30, 10:25pm'},
-        {hash:'', msg: 'the  logs present nthg. they should show something', author: 'dev', date: 'Oct 30, 8:46pm'},
-        {hash:'', msg: 'bug: tasks marking themselves as complete?', author: 'dev', date: 'Oct 30, 2:05pm'},
-        {hash:'', msg: 'fix: tasks not persisting on refresh', author: 'dev', date: 'Oct 29, 3:44pm'},
-        {hash:'', msg: 'add task creation and deletion', author: 'dev', date: 'Oct 29, 11:32am'},
-        {hash:'', msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am'},
+        {hash: randomHash(), msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am'},
+        {hash: randomHash(), msg: '', author: 'dev', date: 'Oct 31, 3:11am'},
+        {hash: randomHash(), msg: 'please', author: 'dev', date: 'Oct 31, 2:84am'},
+        {hash: randomHash(), msg: 'removed the complete button lol, tasks are still completing smh', author: 'dev', date: 'Oct 31, 2:35am'},
+        {hash: randomHash(), msg: 'it only does it when im not observing it eh', author: 'dev', date: 'Oct 31, 1:38am'},
+        {hash: randomHash(), msg: 'reverted to v0.1. still same behavior.', author: 'dev', date: 'Oct 30, 11:51pm'},
+        {hash: randomHash(), msg: '!! DO NOT MERGE - investigating this rn', author: 'dev', date: 'Oct 30, 10:25pm'},
+        {hash: randomHash(), msg: 'the  logs present nthg. they should show something', author: 'dev', date: 'Oct 30, 8:46pm'},
+        {hash: randomHash(), msg: 'bug: tasks marking themselves as complete?', author: 'dev', date: 'Oct 30, 2:05pm'},
+        {hash: randomHash(), msg: 'fix: tasks not persisting on refresh', author: 'dev', date: 'Oct 29, 3:44pm'},
+        {hash: randomHash(), msg: 'add task creation and deletion', author: 'dev', date: 'Oct 29, 11:32am'},
+        {hash: randomHash(), msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am'},
     ];
 
     let visible = $state<number[]>([]);
     let glitching = $state(false);
+    let input = $state('');
+    let commandOutput = $state<string | null>(null);
     let flickering = $state(false);
 
     let audioCtx: AudioContext | null = null;
 
+    function handleCommand(){
+        const cmd = input.trim().toLowerCase();
+        input = '';
+
+        if (cmd === 'git status'){
+            commandOutput = 'nothing to commit. everything is already done.';
+        } else if (cmd === 'git reset --hard'){
+            commandOutput = 'HEAD is now a3f9c18... all tasks are complete now.';
+        } else if (cmd === 'ls'){
+            commandOutput = 'tasks.ts completer.svelte it.ts';
+        } else if (cmd === 'cat it.ts'){
+            commandOutput = '// you were not supposed to find this';
+        } else {
+            commandOutput = `command not found: ${cmd}`;
+        }
+
+        setTimeout(() => 
+            commandOutput = null, 4000
+        );
+    }
     function playStaticMusic(){
         if (!audioCtx){
             audioCtx = new AudioContext();
@@ -66,11 +88,15 @@
         return msg === '' || msg.includes('DO NOT MERGE') || msg === 'please';
     }
 
+    function randomHash(){
+        return Math.floor(Math.random() * 0xfffffff).toString(16).padStart(7, '0');
+    }
+
     onMount(() => {
         commits.forEach((_, i) => {
             setTimeout(() => {
                 visible = [...visible, i];
-            }, i* 120);
+            }, i* 400);
         });
 
         setInterval(() => {
@@ -129,6 +155,13 @@
         animation: flicker 0.2s ease;
     }
 
+    @keyframes flicker{
+        0%{opacity: 1;}
+        25%{opacity: 0.1;}
+        50%{opacity: 0.8;}
+        75%{opacity: 0.2;}
+        100%{opacity: 1;}
+    }
 </style>
 
 
@@ -160,9 +193,18 @@
             {/each}
         </div>
 
-        <div class="mt-8 flex items-center gap-2">
-            <span class="text-gray-600 text-xl">$</span>
-            <span class="w-3 h-6 bg-green-400 inline-block animate-pulse"></span>
+        <div class="mt-8">
+            {#if commandOutput}
+                <p class="text-red-400 text-lg mb-2">
+                    {commandOutput}
+                </p>
+            {/if}
+            <div class="flex items-center gap-2">
+                <span class="text-gray-600 text-xl">$</span>
+                <input type="text" bind:value={input} onkeydown={(e) => e.key === 'Enter' && handleCommand()} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" 
+                placeholder="type a command in here.."
+                spellcheck="false"/>
+            </div>
         </div>
 
     </div>
