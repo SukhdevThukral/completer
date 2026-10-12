@@ -2,18 +2,18 @@
     import {onMount} from 'svelte';
 
     const commits = [
-        {hash: randomHash(), msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am'},
-        {hash: randomHash(), msg: '', author: 'dev', date: 'Oct 31, 3:11am'},
-        {hash: randomHash(), msg: 'please', author: 'dev', date: 'Oct 31, 2:84am'},
-        {hash: randomHash(), msg: 'removed the complete button lol, tasks are still completing smh', author: 'dev', date: 'Oct 31, 2:35am'},
-        {hash: randomHash(), msg: 'it only does it when im not observing it eh', author: 'dev', date: 'Oct 31, 1:38am'},
-        {hash: randomHash(), msg: 'reverted to v0.1. still same behavior.', author: 'dev', date: 'Oct 30, 11:51pm'},
-        {hash: randomHash(), msg: '!! DO NOT MERGE - investigating this rn', author: 'dev', date: 'Oct 30, 10:25pm'},
-        {hash: randomHash(), msg: 'the  logs present nthg. they should show something', author: 'dev', date: 'Oct 30, 8:46pm'},
-        {hash: randomHash(), msg: 'bug: tasks marking themselves as complete?', author: 'dev', date: 'Oct 30, 2:05pm'},
-        {hash: randomHash(), msg: 'fix: tasks not persisting on refresh', author: 'dev', date: 'Oct 29, 3:44pm'},
-        {hash: randomHash(), msg: 'add task creation and deletion', author: 'dev', date: 'Oct 29, 11:32am'},
-        {hash: randomHash(), msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am'},
+        {hash: randomHash(), msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am', note: '// it was never deployed. it did this on its own.'},
+        {hash: randomHash(), msg: '', author: 'dev', date: 'Oct 31, 3:11am', note: '// [message redacted]'},
+        {hash: randomHash(), msg: 'please', author: 'dev', date: 'Oct 31, 2:84am', note: '// this was the last thing he typed.'},
+        {hash: randomHash(), msg: 'removed the complete button lol, tasks are still completing smh', author: 'dev', date: 'Oct 31, 2:35am', note: '// the button was never the problem.'},
+        {hash: randomHash(), msg: 'it only does it when im not observing it eh', author: 'dev', date: 'Oct 31, 1:38am', note: '// we checked the logs. it does it when youre ARE watching too.'},
+        {hash: randomHash(), msg: 'reverted to v0.1. still same behavior.', author: 'dev', date: 'Oct 30, 11:51pm', note: '// v0.1 did not have this feature.'},
+        {hash: randomHash(), msg: '!! DO NOT MERGE - investigating this rn', author: 'dev', date: 'Oct 30, 10:25pm', note: '// it was merged automatically at 3:17am'},
+        {hash: randomHash(), msg: 'the  logs present nthg. they should show something', author: 'dev', date: 'Oct 30, 8:46pm', note: '// the logs were showing something. we removed them.'},
+        {hash: randomHash(), msg: 'bug: tasks marking themselves as complete?', author: 'dev', date: 'Oct 30, 2:05pm', note: '// not a bug'},
+        {hash: randomHash(), msg: 'fix: tasks not persisting on refresh', author: 'dev', date: 'Oct 29, 3:44pm', note: null},
+        {hash: randomHash(), msg: 'add task creation and deletion', author: 'dev', date: 'Oct 29, 11:32am', note: null},
+        {hash: randomHash(), msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am', note: '// he had no idea.'},
     ];
 
     let visible = $state<number[]>([]);
@@ -21,6 +21,8 @@
     let input = $state('');
     let commandOutput = $state<string | null>(null);
     let flickering = $state(false);
+    let expandedNote = $state<number | null>(null);
+    let fatalError = $state(false);
 
     let audioCtx: AudioContext | null = null;
 
@@ -30,13 +32,24 @@
 
         if (cmd === 'git status'){
             commandOutput = 'nothing to commit. everything is already done.';
+        } else if (cmd === 'git log'){
+            commandOutput = 'reloading history...';
+            setTimeout(()=> {
+                {commandOutput =null; runAnimation();}
+            }, 800);
         } else if (cmd === 'git reset --hard'){
             commandOutput = 'HEAD is now a3f9c18... all tasks are complete now.';
+            triggerGlitch();
         } else if (cmd === 'ls'){
             commandOutput = 'tasks.ts completer.svelte it.ts';
         } else if (cmd === 'cat it.ts'){
             commandOutput = '// you were not supposed to find this';
-        } else {
+        } else if (cmd === 'whoami') {
+            commandOutput = 'unknown';
+            triggerFlicker();
+        } else if (cmd === 'help') {
+            commandOutput = 'git status | git log | git reset --hard | ls | cat it.ts | whoami';
+        }else {
             commandOutput = `command not found: ${cmd}`;
         }
 
@@ -88,19 +101,30 @@
         return msg === '' || msg.includes('DO NOT MERGE') || msg === 'please';
     }
 
+    function runAnimation() {
+        visible = [];
+        commits.forEach((_, i) => {
+            setTimeout(()=>{ visible = [...visible, i];}, i* 400);
+        });
+    }
+
     function randomHash(){
         return Math.floor(Math.random() * 0xfffffff).toString(16).padStart(7, '0');
     }
 
     onMount(() => {
-        commits.forEach((_, i) => {
-            setTimeout(() => {
-                visible = [...visible, i];
-            }, i* 400);
-        });
+        setTimeout(() => {
+            fatalError = true;
+            playStaticMusic();
+            setTimeout(()=>
+                (fatalError = false), 1500
+            );
+        }, commits.length * 400 *0.5);
+
+        runAnimation();
 
         setInterval(() => {
-            if (Math.random() < 0.15) {
+            if (Math.random() < 0.20) {
                 triggerFlicker();
             }
         },  3000);
@@ -164,6 +188,12 @@
     }
 </style>
 
+{#if fatalError}
+    <div class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <p class="text-red-500 font-mono text-3xl animate-pulse">FATAL: repository corrupted</p>
+    </div>
+{/if}
+
 
 <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
     <div class="max-w-5xl mx-auto">
@@ -179,16 +209,25 @@
                     <div 
                         role="presentation"
                         onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
+                        onclick={() => commit.note && (expandedNote = expandedNote === i?null: i)}
                         class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
                             {commit.author === 'unknown' ? 'text-red-400' : ''}
-                            {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''}"
+                            {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''} {commit.note ? 'cursor-pointer hover:bg-green-400/5': ''}"
                     >
                         <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
                         <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
                             {commit.msg || '...'}
                         </span>
-                        <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.date}</span>
+                        <span class="text-gray-600 text-base shrink-0 pt-1">
+                            {commit.author}, {commit.date}
+                        </span>
                     </div>
+
+                    {#if expandedNote === i && commit.note}
+                        <p class="ml-32 mb-2 text-gray-500 italic text-lg">
+                            {commit.note}
+                        </p>
+                    {/if}
                 {/if}
             {/each}
         </div>
