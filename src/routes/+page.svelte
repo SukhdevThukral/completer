@@ -1,5 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
+    import BlameView from '#lib/components/BlameView.svelte';
+	import { commandOutput, commandOutputisStreaming, streamedOutput, ghostLine, streamOutput, scheduleGhost, driftUnknownup } from '#lib/stream.svelte.ts';
 
     const commits = [
         {hash: randomHash(), msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am', note: '// it was never deployed. it did this on its own.'},
@@ -19,13 +21,14 @@
     let visible = $state<number[]>([]);
     let glitching = $state(false);
     let input = $state('');
+    let commandOutputisBlame = $state(false);
     let commandOutput = $state<string | null>(null);
     let flickering = $state(false);
     let expandedNote = $state<number | null>(null);
     let fatalError = $state(false);
 
     let audioCtx: AudioContext | null = null;
-
+        
     function handleCommand(){
         const cmd = input.trim().toLowerCase();
         input = '';
@@ -50,11 +53,14 @@
         } else if (cmd === 'help') {
             commandOutput = 'git status | git log | git reset --hard | ls | cat it.ts | whoami';
         } else if (cmd === 'git blame' || cmd === 'git blame tasks.ts') {
-            commandOutput = 
-                '^a3f9c18 (unknown Oct 31 2:11) export const tasks = completer.getAll();';
+            
+            commandOutput = '__blame__';
+            commandOutputisBlame = true;
             triggerGlitch();
+            return;
         } else {
             commandOutput = `command not found: ${cmd}`;
+            
         }
 
         setTimeout(() => 
