@@ -49,7 +49,11 @@
             triggerFlicker();
         } else if (cmd === 'help') {
             commandOutput = 'git status | git log | git reset --hard | ls | cat it.ts | whoami';
-        }else {
+        } else if (cmd === 'git blame' || cmd === 'git blame tasks.ts') {
+            commandOutput = 
+                '^a3f9c18 (unknown Oct 31 2:11) export const tasks = completer.getAll();';
+            triggerGlitch();
+        } else {
             commandOutput = `command not found: ${cmd}`;
         }
 
