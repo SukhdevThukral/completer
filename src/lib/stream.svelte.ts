@@ -1,5 +1,6 @@
+type Commit  = {hash: string; msg: string; author: string; date: string; note: string | null};
+
 export let commandOutput = $state<string | null>(null);
-export let commandOutputisBlame = $state(false);
 export let commandOutputisStreaming = $state(false);
 export let streamedOutput = $state('');
 export let ghostLine = $state<string | null>(null);
@@ -35,11 +36,19 @@ export function scheduleGhost(text: string){
 }
 
 export function driftUnknownup(
-    getCommits: ()=> typeof import('./data').BLAME_LIENS,
-    setCommits: (c: any[])=> void,
+    getCommits: ()=> Commit[],
+    setCommits: (c: Commit[])=> void,
     triggerFlicker: ()=> void
 ) {
     setInterval(() => {
-        const commits
-    })
+        const commits = getCommits();
+        const idx = commits.findIndex(c => c.author === 'unknown');
+        if (idx>0){
+            const next = [...commits];
+            const [item] = next.splice(idx, 1);
+            next.splice(idx-1, 0, item);
+            setCommits(next);
+            triggerFlicker();
+        }
+    }, 22000);
 }
