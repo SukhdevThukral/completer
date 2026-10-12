@@ -97,6 +97,40 @@
     })
 </script>
 
+<style>
+    .crt::before{
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0,0,0,0.08) 0px,
+            rgba(0,0,0,0.08) 1px,
+
+            transparent 1px,
+            transparent 2px
+        ); pointer-events: none; z-index: 50;
+    }
+
+    .glitch {
+        animation: glitching 0.1s infinite;
+    }
+
+    @keyframes glitching {
+        0%{transform: translate(0); filter: hue-rotate(0deg);}
+        20%{transform: translate(-4px, 2px); filter: hue-rotate(90deg);}
+        40%{transform: translate(4px, -2px); filter: hue-rotate(180deg);}
+        60%{transform: translate(-2px, 4px); filter: hue-rotate(270deg);}
+        80%{transform: translate(2px, -4px); filter: hue-rotate(360deg);}
+        100%{transform: translate(0); filter: hue-rotate(0deg);}
+    }
+
+    .flicker{
+        animation: flicker 0.2s ease;
+    }
+
+</style>
+
 
 <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
     <div class="max-w-5xl mx-auto">
@@ -130,6 +164,6 @@
             <span class="text-gray-600 text-xl">$</span>
             <span class="w-3 h-6 bg-green-400 inline-block animate-pulse"></span>
         </div>
-        
+
     </div>
 </main>
