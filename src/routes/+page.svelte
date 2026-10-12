@@ -17,7 +17,6 @@
     ];
 
     let visible = $state<number[]>([]);
-    let expanded = $state<number | null>(null);
     let glitching = $state(false);
     let flickering = $state(false);
 
@@ -63,10 +62,6 @@
         }, 150);
     }
 
-    function toggleExpand(i: number){
-        expanded = expanded === i ? null : i;
-    }
-
     function isglitchCommit(msg: string){
         return msg === '' || msg.includes('DO NOT MERGE') || msg === 'please';
     }
@@ -105,42 +100,36 @@
 
 <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
     <div class="max-w-5xl mx-auto">
+
         <div class="mb-10">
             <p class="text-gray-600 text-lg">~/projects/completer</p>
             <p class="text-gray-500 text-xl mt-1">$ git log --oneline</p>
         </div>
+
         <div class="space-y-1">
             {#each commits as commit, i (i)}
                 {#if visible.includes(i)}
-                    <div class="group">
-                        <button 
-                            onclick={() => toggleExpand(i)}
-                            onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
-                            class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
-                                hover:bg-green-400/5 transition-colors cursor-pointer
-                                {commit.author === 'unknown' ? 'text-red-400' : ''}
-                                {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''}"
-                        >
-                            <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
-                            <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
-                                {commit.msg || '...'}
-                            </span>
-                            <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.date}</span>
-                        </button>
-
-                        {#if expanded === i && commit.diff}
-                            <div class="ml-32 mt-1 mb-3 border-l-2 border-green-900 pl-6 text-lg space-y-1">
-                                {#each commit.diff.split('\n') as line}
-                            </div>
-                        {/if}
+                    <div 
+                        role="presentation"
+                        onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
+                        class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
+                            {commit.author === 'unknown' ? 'text-red-400' : ''}
+                            {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''}"
+                    >
+                        <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
+                        <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
+                            {commit.msg || '...'}
+                        </span>
+                        <span class="text-gray-600 text-base shrink-0 pt-1">{commit.author}, {commit.date}</span>
                     </div>
-                    <!-- <div class="flex gap-4 items-start {commit.author === 'unknown' ? 'text-red-400' : ''} {commit.msg === '' ? 'opacity-30' : ''} ">
-                        <span class="text-yellow-600 shrink-0">{commit.hash}</span>
-                        <span class="flex-1">{commit.msg || '...'}</span>
-                        <span class="text-gray-600 shrink-0 text-sm">{commit.author}, {commit.date}</span>
-                    </div> -->
                 {/if}
             {/each}
         </div>
+
+        <div class="mt-8 flex items-center gap-2">
+            <span class="text-gray-600 text-xl">$</span>
+            <span class="w-3 h-6 bg-green-400 inline-block animate-pulse"></span>
+        </div>
+        
     </div>
 </main>
