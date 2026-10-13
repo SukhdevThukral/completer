@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import BlameView from '#lib/components/BlameView.svelte';
-	import { commandOutput, streamedOutput, ghostLine, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput } from '#lib/stream.svelte.ts';
+	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput } from '#lib/stream.svelte.ts';
 
     type Commit = {hash:string; msg: string; author: string; date: string; note: string | null};
 
@@ -279,14 +279,14 @@
         <div class="mt-8">
             {#if commandOutputisBlame}
                 <BlameView/>
-            {:else if commandOutput === '__stream__'}
-                <p class="text-green-400 text-lg mb-2 whitespace-pre stream-cursor">{streamedOutput}</p>
-            {:else if commandOutput}
-                <p class="text-red-400 text-lg mb-2">{commandOutput}</p>
+            {:else if s.commandOutput === '__stream__'}
+                <p class="text-green-400 text-lg mb-2 whitespace-pre stream-cursor">{s.streamedOutput}</p>
+            {:else if s.commandOutput}
+                <p class="text-red-400 text-lg mb-2">{s.commandOutput}</p>
             {/if}
 
-            {#if ghostLine}
-                <p class="ghost-line font-mono">$ {ghostLine}</p>
+            {#if s.ghostLine}
+                <p class="ghost-line font-mono">$ {s.ghostLine}</p>
             {/if}
 
             <div class="flex items-center gap-2">
