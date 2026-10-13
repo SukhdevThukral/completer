@@ -136,7 +136,7 @@
         }, commits.length * 400 *0.5);
 
         runAnimation();
-        driftUnknownup(()=> commits,(c)=> {
+        driftUnknownup(()=> commits,(c: Commit[])=> {
             commits = c;
         },
             triggerFlicker
@@ -212,7 +212,7 @@
         font-size: 1rem;
         margin-left: 1.5rem;
         margin-top: 0.2rem;
-        letter-spacing: ;
+        letter-spacing: 0.11rem;
     }
 
     @keyframes ghostFading {
@@ -280,13 +280,13 @@
             {#if commandOutputisBlame}
                 <BlameView/>
             {:else if commandOutput === '__stream__'}
-                <p class="text-green-400 texxt-lg mb-2 whitespace-pre stream-curosr">{streamedOutput}</p>
+                <p class="text-green-400 text-lg mb-2 whitespace-pre stream-cursor">{streamedOutput}</p>
             {:else if commandOutput}
                 <p class="text-red-400 text-lg mb-2">{commandOutput}</p>
             {/if}
 
             {#if ghostLine}
-                <p class="ghost-line font-mono">$</p>
+                <p class="ghost-line font-mono">$ {ghostLine}</p>
             {/if}
 
             <div class="flex items-center gap-2">
@@ -299,7 +299,7 @@
                         setCommandOutput(null);
                         commandOutputisBlame = false;
                     }
-                }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-40" placeholder="type a command in here.." spellcheck="false"/>
+                }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" placeholder="type a command in here.." spellcheck="false"/>
             </div>
         </div>
 
