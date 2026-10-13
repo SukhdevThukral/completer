@@ -1,9 +1,11 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import BlameView from '#lib/components/BlameView.svelte';
-	import { commandOutput, commandOutputisStreaming, streamedOutput, ghostLine, streamOutput, scheduleGhost, driftUnknownup } from '#lib/stream.svelte.ts';
+	import { commandOutput, streamedOutput, ghostLine, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput } from '#lib/stream.svelte.ts';
 
-    const commits = [
+    type Commit = {hash:string; msg: string; author: string; date: string; note: string | null};
+
+    let commits = $state<Commit[]>([
         {hash: randomHash(), msg: 'all tasks are complete', author: 'unknown', date: 'Oct 31, 2:11am', note: '// it was never deployed. it did this on its own.'},
         {hash: randomHash(), msg: '', author: 'dev', date: 'Oct 31, 3:11am', note: '// [message redacted]'},
         {hash: randomHash(), msg: 'please', author: 'dev', date: 'Oct 31, 2:84am', note: '// this was the last thing he typed.'},
@@ -16,13 +18,12 @@
         {hash: randomHash(), msg: 'fix: tasks not persisting on refresh', author: 'dev', date: 'Oct 29, 3:44pm', note: null},
         {hash: randomHash(), msg: 'add task creation and deletion', author: 'dev', date: 'Oct 29, 11:32am', note: null},
         {hash: randomHash(), msg: 'init project', author: 'dev', date: 'Oct 29, 10:00am', note: '// he had no idea.'},
-    ];
+    ]);
 
     let visible = $state<number[]>([]);
     let glitching = $state(false);
     let input = $state('');
     let commandOutputisBlame = $state(false);
-    let commandOutput = $state<string | null>(null);
     let flickering = $state(false);
     let expandedNote = $state<number | null>(null);
     let fatalError = $state(false);
@@ -32,39 +33,40 @@
     function handleCommand(){
         const cmd = input.trim().toLowerCase();
         input = '';
+        commandOutputisBlame = false;
 
         if (cmd === 'git status'){
-            commandOutput = 'nothing to commit. everything is already done.';
+            setCommandOutput('nothing to commit. everything is already done.');
         } else if (cmd === 'git log'){
-            commandOutput = 'reloading history...';
+            setCommandOutput('reloading history...');
             setTimeout(()=> {
-                {commandOutput =null; runAnimation();}
+                {setCommandOutput(null); runAnimation();}
             }, 800);
         } else if (cmd === 'git reset --hard'){
-            commandOutput = 'HEAD is now a3f9c18... all tasks are complete now.';
+            setCommandOutput('HEAD is now a3f9c18... all tasks are complete now.');
             triggerGlitch();
         } else if (cmd === 'ls'){
-            commandOutput = 'tasks.ts completer.svelte it.ts';
+            setCommandOutput('tasks.ts completer.svelte it.ts');
         } else if (cmd === 'cat it.ts'){
-            commandOutput = '// you were not supposed to find this';
+            setCommandOutput('// you were not supposed to find this');
         } else if (cmd === 'whoami') {
-            commandOutput = 'unknown';
+            setCommandOutput('unknown');
             triggerFlicker();
         } else if (cmd === 'help') {
-            commandOutput = 'git status | git log | git reset --hard | ls | cat it.ts | whoami';
+            setCommandOutput('git status | git log | git reset --hard | ls | cat it.ts | whoami');
         } else if (cmd === 'git blame' || cmd === 'git blame tasks.ts') {
-            
-            commandOutput = '__blame__';
+            commandOutputisBlame = true;
+            setCommandOutput('__blame__');
             commandOutputisBlame = true;
             triggerGlitch();
             return;
         } else {
-            commandOutput = `command not found: ${cmd}`;
+            setCommandOutput(`command not found: ${cmd}`);
             
         }
 
         setTimeout(() => 
-            commandOutput = null, 4000
+            setCommandOutput(null), 4000
         );
     }
     function playStaticMusic(){
@@ -132,6 +134,11 @@
         }, commits.length * 400 *0.5);
 
         runAnimation();
+        driftUnknownup(()=> commits,(c)=> {
+            commits = c;
+        },
+            triggerFlicker
+        );
 
         setInterval(() => {
             if (Math.random() < 0.20) {
@@ -214,7 +221,7 @@
         </div>
 
         <div class="space-y-1">
-            {#each commits as commit, i (i)}
+            {#each commits as commit, i (commit.hash)}
                 {#if visible.includes(i)}
                     <div 
                         role="presentation"
@@ -243,16 +250,29 @@
         </div>
 
         <div class="mt-8">
-            {#if commandOutput}
-                <p class="text-red-400 text-lg mb-2">
-                    {commandOutput}
-                </p>
+            {#if commandOutputisBlame}
+                <BlameView/>
+            {:else if commandOutput === '__stream__'}
+                <p class="text-green-400 texxt-lg mb-2 whitespace-pre stream-curosr">{streamedOutput}</p>
+            {:else if commandOutput}
+                <p class="text-red-400 text-lg mb-2">{commandOutput}</p>
             {/if}
+
+            {#if ghostLine}
+                <p class="ghost-line font-mono">$</p>
+            {/if}
+
             <div class="flex items-center gap-2">
                 <span class="text-gray-600 text-xl">$</span>
-                <input type="text" bind:value={input} onkeydown={(e) => e.key === 'Enter' && handleCommand()} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" 
-                placeholder="type a command in here.."
-                spellcheck="false"/>
+                <input type="text" bind:value={input} onkeydown={(e)=> {
+                    if (e.key === 'Enter'){
+                        handleCommand();
+                    }
+                    if (e.key === 'Escape'){
+                        setCommandOutput(null);
+                        commandOutputisBlame = false;
+                    }
+                }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-40" placeholder="type a command in here.." spellcheck="false"/>
             </div>
         </div>
 
