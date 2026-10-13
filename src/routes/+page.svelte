@@ -37,6 +37,7 @@
 
         if (cmd === 'git status'){
             setCommandOutput('nothing to commit. everything is already done.');
+            scheduleGhost('everything is already done.')
         } else if (cmd === 'git log'){
             setCommandOutput('reloading history...');
             setTimeout(()=> {
@@ -45,19 +46,20 @@
         } else if (cmd === 'git reset --hard'){
             setCommandOutput('HEAD is now a3f9c18... all tasks are complete now.');
             triggerGlitch();
+            scheduleGhost('HEAD cannot move.');
         } else if (cmd === 'ls'){
             setCommandOutput('tasks.ts completer.svelte it.ts');
         } else if (cmd === 'cat it.ts'){
-            setCommandOutput('// you were not supposed to find this');
+            streamOutput('// you were not supposed to find this\n// but here you are\n// it already knows..');
         } else if (cmd === 'whoami') {
             setCommandOutput('unknown');
             triggerFlicker();
+            scheduleGhost('unknown');
         } else if (cmd === 'help') {
             setCommandOutput('git status | git log | git reset --hard | ls | cat it.ts | whoami');
         } else if (cmd === 'git blame' || cmd === 'git blame tasks.ts') {
             commandOutputisBlame = true;
             setCommandOutput('__blame__');
-            commandOutputisBlame = true;
             triggerGlitch();
             return;
         } else {
@@ -203,6 +205,31 @@
         75%{opacity: 0.2;}
         100%{opacity: 1;}
     }
+
+    .ghost-line {
+        animation: ghostFading 3s ease forwards;
+        color: rgba(74, 222, 128, 0.25);
+        font-size: 1rem;
+        margin-left: 1.5rem;
+        margin-top: 0.2rem;
+        letter-spacing: ;
+    }
+
+    @keyframes ghostFading {
+        0%{opacity: 0.5;}
+        60%{opacity: 0.3;}
+        100% {opacity: 0;}
+    }
+
+    .stream-cursor::after{
+        content: '▋';
+        animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink {
+        50% {opacity: 0%}
+    }
+
 </style>
 
 {#if fatalError}
