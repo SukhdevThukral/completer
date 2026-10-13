@@ -1,26 +1,29 @@
 type Commit  = {hash: string; msg: string; author: string; date: string; note: string | null};
 
-export let commandOutput = $state<string | null>(null);
-export let commandOutputisStreaming = $state(false);
-export let streamedOutput = $state('');
-export let ghostLine = $state<string | null>(null);
+export const s = $state({
+    commandOutput: null as string | null,
+    commandOutputisStreaming: false,
+    streamedOutput: '',
+    ghostLine: null as string | null,
+});
+
 
 export function streamOutput(text: string){
-    commandOutputisStreaming = true;
-    streamedOutput = '';
-    commandOutput = '__stream__';
+    s.commandOutputisStreaming = true;
+    s.streamedOutput = '';
+    s.commandOutput = '__stream__';
 
     let i = 0;
     const interval = setInterval(()=> {
         if (i<text.length){
-            streamedOutput += text[i];
+            s.streamedOutput += text[i];
             i++;
         } else {
             clearInterval(interval);
             setTimeout(()=> {
-                commandOutput = null;
-                commandOutputisStreaming= false;
-                streamedOutput = '';
+                s.commandOutput = null;
+                s.commandOutputisStreaming= false;
+                s.streamedOutput = '';
             }, 4000);
         }
     }, 38);
@@ -28,9 +31,9 @@ export function streamOutput(text: string){
 
 export function scheduleGhost(text: string){
     setTimeout(()=> {
-        ghostLine=text;
+        s.ghostLine=text;
         setTimeout(() => {
-            ghostLine = null;
+            s.ghostLine = null;
         }, 3000);
     }, 1200);
 }
@@ -54,5 +57,5 @@ export function driftUnknownup(
 }
 
 export function setCommandOutput(v: string | null){
-    commandOutput = v;
+    s.commandOutput = v;
 }
