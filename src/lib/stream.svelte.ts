@@ -52,3 +52,7 @@ export function driftUnknownup(
         }
     }, 22000);
 }
+
+export function setCommandOutput(v: string | null){
+    commandOutput = v;
+}
