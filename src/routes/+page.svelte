@@ -29,6 +29,7 @@
     let fatalError = $state(false);
 
     let audioCtx: AudioContext | null = null;
+
         
     function handleCommand(){
         const cmd = input.trim().toLowerCase();
@@ -125,44 +126,48 @@
     function randomHash(){
         return Math.floor(Math.random() * 0xfffffff).toString(16).padStart(7, '0');
     }
+        
+    let splashVisibl = $state(true);
+    let splashFading = $state(false);
+    let applicVisibl = $state(false);
 
-    onMount(() => {
-        setTimeout(() => {
-            fatalError = true;
-            playStaticMusic();
-            setTimeout(()=>
-                (fatalError = false), 1500
-            );
-        }, commits.length * 400 *0.5);
+    onMount(()=> {
+        setTimeout(()=> {
+            splashFading = true;
+            setTimeout(()=> {
+                splashVisibl = false;
+                applicVisibl = true;
 
-        runAnimation();
-        driftUnknownup(()=> commits,(c: Commit[])=> {
-            commits = c;
-        },
-            triggerFlicker
-        );
+                setTimeout(()=> {
+                    fatalError=true;
+                    playStaticMusic();
+                    setTimeout(()=> {
+                        fatalError =false;
+                    }, 1500);
+                }, commits.length* 400 *0.5);
 
-        setInterval(() => {
-            if (Math.random() < 0.20) {
-                triggerFlicker();
-            }
-        },  3000);
+                runAnimation();
+                driftUnknownup(()=> 
+                    commits, (c) => {
+                        commits = c;
+                    }, triggerFlicker
+                );
 
-        const titles = [
-            'completer',
-            'completer.',
-            'completer..',
-            'completer...',
-            'it knows..',
-            'completer',
-        ];
+                setInterval(()=> {
+                    if (Math.random() < 0.3)
+                    triggerFlicker();
+                }, 3000);
 
-        let t = 0;
+                const titles = ['completer', 'completer.', 'completer..', 'completer...', 'it knows..', 'completer'];
 
-        setInterval(() => {
-            document.title = titles[t % titles.length];
-            t++;
-        }, 2000);
+                let t= 0;
+
+                setInterval(()=> {
+                    document.title = titles[t %titles.length];
+                    t++;
+                }, 2000);
+            }, 800);
+        }, 1500);
     })
 </script>
 
@@ -230,78 +235,107 @@
         50% {opacity: 0%}
     }
 
+    .splash {
+        animation: fadeIn 0.8s ease forwards;
+    }
+
+    .splash.fading {
+        animation: fadeOut 0.8s ease forwards;
+    }
+
+    .appfadeIn{
+        animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn{
+        from{opacity: 0;}
+        to{opacity: 1;}
+    }
+
+    @keyframes fadeOut{
+        from{opacity: 1;}
+        to{opacity: 0;}
+    }
 </style>
 
-{#if fatalError}
-    <div class="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <p class="text-red-500 font-mono text-3xl animate-pulse">FATAL: repository corrupted</p>
+{#if splashVisibl}
+    <div class="fixed inset-0 bg-black flex items-center justify-center splash {splashFading? 'fading':''}">
+        <img src="logo.png" alt="completerLogo" class="w-200 h-auto"/>
     </div>
 {/if}
 
-
-<main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
-    <div class="max-w-5xl mx-auto">
-
-        <div class="mb-10">
-            <p class="text-gray-600 text-lg">~/projects/completer</p>
-            <p class="text-gray-500 text-xl mt-1">$ git log --oneline</p>
-        </div>
-
-        <div class="space-y-1">
-            {#each commits as commit, i (commit.hash)}
-                {#if visible.includes(i)}
-                    <div 
-                        role="presentation"
-                        onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
-                        onclick={() => commit.note && (expandedNote = expandedNote === i?null: i)}
-                        class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
-                            {commit.author === 'unknown' ? 'text-red-400' : ''}
-                            {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''} {commit.note ? 'cursor-pointer hover:bg-green-400/5': ''}"
-                    >
-                        <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
-                        <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
-                            {commit.msg || '...'}
-                        </span>
-                        <span class="text-gray-600 text-base shrink-0 pt-1">
-                            {commit.author}, {commit.date}
-                        </span>
-                    </div>
-
-                    {#if expandedNote === i && commit.note}
-                        <p class="ml-32 mb-2 text-gray-500 italic text-lg">
-                            {commit.note}
-                        </p>
-                    {/if}
-                {/if}
-            {/each}
-        </div>
-
-        <div class="mt-8">
-            {#if commandOutputisBlame}
-                <BlameView/>
-            {:else if s.commandOutput === '__stream__'}
-                <p class="text-green-400 text-lg mb-2 whitespace-pre stream-cursor">{s.streamedOutput}</p>
-            {:else if s.commandOutput}
-                <p class="text-red-400 text-lg mb-2">{s.commandOutput}</p>
-            {/if}
-
-            {#if s.ghostLine}
-                <p class="ghost-line font-mono">$ {s.ghostLine}</p>
-            {/if}
-
-            <div class="flex items-center gap-2">
-                <span class="text-gray-600 text-xl">$</span>
-                <input type="text" bind:value={input} onkeydown={(e)=> {
-                    if (e.key === 'Enter'){
-                        handleCommand();
-                    }
-                    if (e.key === 'Escape'){
-                        setCommandOutput(null);
-                        commandOutputisBlame = false;
-                    }
-                }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" placeholder="type a command in here.." spellcheck="false"/>
+{#if applicVisibl}
+    <div class="appfadeIn">
+        {#if fatalError}
+            <div class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+                <p class="text-red-500 font-mono text-3xl animate-pulse">FATAL: repository corrupted</p>
             </div>
-        </div>
+        {/if}
 
+        <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
+            <div class="max-w-5xl mx-auto">
+
+                <div class="mb-10">
+                    <p class="text-gray-600 text-lg">~/projects/completer</p>
+                    <p class="text-gray-500 text-xl mt-1">$ git log --oneline</p>
+                </div>
+
+                <div class="space-y-1">
+                    {#each commits as commit, i (commit.hash)}
+                        {#if visible.includes(i)}
+                            <div 
+                                role="presentation"
+                                onmouseenter={() => commit.author === 'unknown' && triggerGlitch()}
+                                onclick={() => commit.note && (expandedNote = expandedNote === i?null: i)}
+                                class="w-full text-left flex gap-6 items-start py-3 px-4 rounded
+                                    {commit.author === 'unknown' ? 'text-red-400' : ''}
+                                    {isglitchCommit(commit.msg) ? 'opacity-60 hover:opacity-100' : ''} {commit.note ? 'cursor-pointer hover:bg-green-400/5': ''}"
+                            >
+                                <span class="text-yellow-600 text-xl shrink-0 w-24">{commit.hash}</span>
+                                <span class="flex-1 text-2xl {commit.msg === '' ? 'opacity-20' : ''}">
+                                    {commit.msg || '...'}
+                                </span>
+                                <span class="text-gray-600 text-base shrink-0 pt-1">
+                                    {commit.author}, {commit.date}
+                                </span>
+                            </div>
+
+                            {#if expandedNote === i && commit.note}
+                                <p class="ml-32 mb-2 text-gray-500 italic text-lg">
+                                    {commit.note}
+                                </p>
+                            {/if}
+                        {/if}
+                    {/each}
+                </div>
+
+                <div class="mt-8">
+                    {#if commandOutputisBlame}
+                        <BlameView/>
+                    {:else if s.commandOutput === '__stream__'}
+                        <p class="text-green-400 text-lg mb-2 whitespace-pre stream-cursor">{s.streamedOutput}</p>
+                    {:else if s.commandOutput}
+                        <p class="text-red-400 text-lg mb-2">{s.commandOutput}</p>
+                    {/if}
+
+                    {#if s.ghostLine}
+                        <p class="ghost-line font-mono">$ {s.ghostLine}</p>
+                    {/if}
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-600 text-xl">$</span>
+                        <input type="text" bind:value={input} onkeydown={(e)=> {
+                            if (e.key === 'Enter'){
+                                handleCommand();
+                            }
+                            if (e.key === 'Escape'){
+                                setCommandOutput(null);
+                                commandOutputisBlame = false;
+                            }
+                        }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" placeholder="type a command in here.." spellcheck="false"/>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-</main>
+{/if}
