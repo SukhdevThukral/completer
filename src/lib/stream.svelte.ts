@@ -11,7 +11,6 @@ const mutations = [
     'stop.'
 ]
 
-let mutationIndex = 0;
 
 export function startMsgMutate(
     getCommits:()=> Commit[],
@@ -19,8 +18,8 @@ export function startMsgMutate(
     triggerFlicker: ()=> void
 ) {
     setInterval(()=> {
-        mutationIndex++;
-        if (mutationIndex >= mutations.length) {
+        s.mutationIndex++;
+        if (s.mutationIndex >= mutations.length) {
             return;
         }
 
@@ -31,7 +30,7 @@ export function startMsgMutate(
         }
 
         const next = [...commits];
-        next[idx] = {...next[idx],msg: mutations[mutationIndex]};
+        next[idx] = {...next[idx],msg: mutations[s.mutationIndex]};
         setCommits(next);
         triggerFlicker();
     },3000 / mutations.length);
@@ -44,6 +43,7 @@ export const s = $state({
     ghostLine: null as string | null,
     isShaking: false,
     showJumpscare: false,
+    mutationIndex: 0,
 });
 
 
