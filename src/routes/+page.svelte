@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import BlameView from '#lib/components/BlameView.svelte';
-	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput } from '#lib/stream.svelte.ts';
+	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput, startIdleWatcher } from '#lib/stream.svelte.ts';
 
     type Commit = {hash:string; msg: string; author: string; date: string; note: string | null};
 
@@ -147,6 +147,24 @@
                 }, commits.length* 400 *0.5);
 
                 runAnimation();
+
+                const idleRef = {
+                    reset: ()=> {}
+                };
+
+                startIdleWatcher(()=> {
+                    input = '$ git blame tasks.ts';
+                    setTimeout(()=> {
+                        input = '';
+                        commandOutputisBlame = true;
+                        setCommandOutput('__blame__');
+                        triggerGlitch();
+                    }, 1200)
+                }, idleRef);
+
+                window.addEventListener('keydown', () => idleRef.reset());
+                window.addEventListener('mousedown', ()=> idleRef.reset());
+
                 driftUnknownup(()=> 
                     commits, (c) => {
                         commits = c;
@@ -172,6 +190,10 @@
 </script>
 
 <style>
+    .shaking{
+        animation : shakes 0.15s infinite; 
+    }
+
     .crt::before{
         content: '';
         position: fixed;
@@ -247,6 +269,14 @@
         animation: fadeIn 0.6s ease forwards;
     }
 
+    .jumpscareImg{
+        animation: imgFlash 1.3s  steps(1) forwards;
+    }
+
+    .jumpscareFlash{
+        animation: flashIn 1.2s steps(1) forwards;
+    }
+    
     @keyframes fadeIn{
         from{opacity: 0;}
         to{opacity: 1;}
@@ -256,6 +286,39 @@
         from{opacity: 1;}
         to{opacity: 0;}
     }
+
+    @keyframes shakes{
+        0%{transform: translate(0,0) rotate(0deg);}
+        20%{transform: translate(-6px, 3px) rotate(-1deg);}
+        40%{transform: translate(6px, -3px) rotate(1deg);}
+        60%{transform: translate(-4px, 5px) rotate(-0.5deg);}
+        80%{transform: translate(5px, -2px) rotate(0.8deg);}
+        100%{transform: translate(0,0) rotate(0deg);}
+    }
+
+    @keyframes flashIn{
+        0%{background: white;}
+        10%{background: black;}
+        20%{background: white;}
+        30%{background: black;}
+        40%{background: black;}
+        50%{background: black;}
+        100%{background: black;}
+    }
+
+    @keyframes imgFlash{
+        0%{opacity: 0;}
+        8%{opacity: 1;}
+        15%{opacity: 0;}
+        25%{opacity: 1;}
+        35%{opacity: 0;}
+        40%{opacity:1;}
+        50%{opacity: 1;}
+        90%{opacity: 1;}
+        100%{opacity: 0;}
+    }
+
+
 </style>
 
 {#if splashVisibl}
@@ -272,7 +335,18 @@
             </div>
         {/if}
 
-        <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 {glitching ? 'glitch' : ''} {flickering ? 'flicker' : ''}">
+        {#if s.showJumpscare}
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black jumpscareFlash">
+                <img src="jumpscare.png" alt="jumpscare-img" class="w-full h-full object-cover jumpscareImg"/>
+            </div>
+        {/if}
+
+        <main class="crt min-h-screen bg-black text-green-400 font-mono p-10 
+        {glitching ? 'glitch' : ''} 
+        {flickering ? 'flicker' : ''}
+        {s.isShaking ? 'shaking' : ''}
+        {s.isShaking ? 'text-red-400': 'text-green-400'}">
+
             <div class="max-w-5xl mx-auto">
 
                 <div class="mb-10">
