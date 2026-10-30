@@ -150,7 +150,27 @@
     let splashFading = $state(false);
     let applicVisibl = $state(false);
 
+    let mounted = $state(false);
+
+    $effect(() => {
+        if (!mounted){
+            return;
+        }
+        if (s.isEnded) {
+            console.log('condition successfully hit');
+            setTimeout(() => {
+                showReport = true;
+            }, 2000);
+        }
+    });
+    
     onMount(()=> {
+        s.isEnded = false;
+        s.mutationIndex = 0;
+
+        setTimeout(()=> {
+            mounted = true;
+        }, 100)
         const audio = new Audio('/ambient_music.mp3');
         audio.loop = true;
         audio.volume = 0.4;
@@ -216,11 +236,14 @@
                     }, triggerFlicker
                 );
 
-                checkEnding(()=> commits, ()=> {
-                    setTimeout(()=> {
-                        showReport = true;
-                    }, 2000)
-                })
+                setInterval(() => {
+                    if (s.isEnded) return;
+                    
+                    const idx = commits.findIndex(c => c.author === 'unknown');
+                    if (idx === 0 && s.mutationIndex >= 7) {
+                        s.isEnded = true;
+                    }
+                }, 3000);
 
                 setInterval(()=> {
                     const idx = commits.findIndex(c=>c.author === 'unknown');
