@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import BlameView from '#lib/components/BlameView.svelte';
-	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput, startIdleWatcher, startMsgMutate } from '#lib/stream.svelte.ts';
+	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput, startIdleWatcher, startMsgMutate, startTimeStampDrift } from '#lib/stream.svelte.ts';
 
     type Commit = {hash:string; msg: string; author: string; date: string; note: string | null};
 
@@ -205,6 +205,13 @@
 
                 startMsgMutate(
                     ()=>commits, (c)=>{commits = c;}, triggerFlicker
+                );
+
+                startTimeStampDrift(
+                    ()=> commits, 
+                    (c)=> {
+                        commits = c;
+                    }, triggerFlicker
                 );
 
                 setInterval(()=> {
