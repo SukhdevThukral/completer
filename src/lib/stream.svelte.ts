@@ -33,7 +33,7 @@ export function startMsgMutate(
         next[idx] = {...next[idx],msg: mutations[s.mutationIndex]};
         setCommits(next);
         triggerFlicker();
-    },3000 / mutations.length);
+    },22000 / mutations.length);
 }
 
 export const s = $state({
@@ -128,7 +128,7 @@ export function startTimeStampDrift(
 
 export function checkEnding(
     getCommits:()=> Commit[],
-    onEnd: ()=> void
+    onEnd?: ()=> void
 ) {
     setInterval(()=> {
         if (s.isEnded){
@@ -138,7 +138,7 @@ export function checkEnding(
         const idx = commits.findIndex(c=>c.author === 'unknown');
         if (idx === 0 && s.mutationIndex >= mutations.length - 1){
             s.isEnded = true;
-            onEnd();
+            onEnd?.();
         }
     }, 3000);
 }
