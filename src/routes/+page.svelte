@@ -1,7 +1,8 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import BlameView from '#lib/components/BlameView.svelte';
-	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput, startIdleWatcher, startMsgMutate, startTimeStampDrift } from '#lib/stream.svelte.ts';
+    import EndScreen from '#lib/components/EndScreen.svelte';
+	import {s, streamOutput, scheduleGhost, driftUnknownup, setCommandOutput, startIdleWatcher, startMsgMutate, startTimeStampDrift, checkEnding } from '#lib/stream.svelte.ts';
 
     type Commit = {hash:string; msg: string; author: string; date: string; note: string | null};
 
@@ -33,6 +34,7 @@
 
     let audioCtx: AudioContext | null = null;
 
+    let showReport = $state(false);
         
     function handleCommand(){
         const cmd = input.trim().toLowerCase();
@@ -213,6 +215,12 @@
                         commits = c;
                     }, triggerFlicker
                 );
+
+                checkEnding(()=> commits, ()=> {
+                    setTimeout(()=> {
+                        showReport = true;
+                    }, 2000)
+                })
 
                 setInterval(()=> {
                     const idx = commits.findIndex(c=>c.author === 'unknown');
@@ -475,5 +483,11 @@
                 </div>
             </div>
         </main>
+    </div>
+{/if}
+
+{#if showReport}
+    <div class="fixed inset-0 z-50">
+        <EndScreen/>
     </div>
 {/if}
