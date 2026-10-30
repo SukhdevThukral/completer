@@ -28,6 +28,9 @@
     let expandedNote = $state<number | null>(null);
     let fatalError = $state(false);
 
+    let terminalLock = $state(false);
+    let helpCallCount = $state(0);
+
     let audioCtx: AudioContext | null = null;
 
         
@@ -57,11 +60,25 @@
             triggerFlicker();
             scheduleGhost('unknown');
         } else if (cmd === 'help') {
-            setCommandOutput('git status | git log | git reset --hard | ls | cat it.ts | whoami');
+            helpCallCount++;
+            if(helpCallCount>=3 || s.mutationIndex >= 3){
+                setCommandOutput('git status | git log | git reset --hard | ls | cat it.ts | whoami | run');
+            } else {
+                setCommandOutput('git status | git log | git reset --hard | ls | cat it.ts | whoami')
+            }
         } else if (cmd === 'git blame' || cmd === 'git blame tasks.ts') {
             commandOutputisBlame = true;
             setCommandOutput('__blame__');
             triggerGlitch();
+            return;
+        } else if (cmd === 'run'){
+            streamOutput('// initializing...\n// already running.');
+            terminalLock = true;
+            triggerGlitch();
+            setTimeout(()=> {
+                terminalLock = false;
+            }, 5000);
+            
             return;
         } else {
             setCommandOutput(`command not found: ${cmd}`);
@@ -191,6 +208,15 @@
                 );
 
                 setInterval(()=> {
+                    const idx = commits.findIndex(c=>c.author === 'unknown');
+                    if (idx === 0) {
+                        document.documentElement.classList.add('hide-scrollbar');
+                    } else {
+                        document.documentElement.classList.remove('hide-scrollbar');
+                    }
+                }, 1000);
+
+                setInterval(()=> {
                     if (Math.random() < 0.3)
                     triggerFlicker();
                 }, 3000);
@@ -211,6 +237,15 @@
 <style>
     .shaking{
         animation : shakes 0.15s infinite; 
+    }
+
+    :global(html) {
+        transition: scrollbar-color 2s ease;
+        scrollbar-color: #4ade804d;
+    }
+
+    :global(html.hide-scrollbar){
+        scrollbar-color: transparent transparent;
     }
 
     .crt::before{
@@ -418,6 +453,9 @@
                     <div class="flex items-center gap-2">
                         <span class="text-gray-600 text-xl">$</span>
                         <input type="text" bind:value={input} onkeydown={(e)=> {
+                            if (terminalLock){
+                                return;
+                            }
                             if (e.key === 'Enter'){
                                 handleCommand();
                             }
@@ -425,7 +463,7 @@
                                 setCommandOutput(null);
                                 commandOutputisBlame = false;
                             }
-                        }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400" placeholder="type a command in here.." spellcheck="false"/>
+                        }} class="bg-transparent border-none outline-none text-green-400 text-xl font-mono flex-1 caret-green-400 disabled:opacity-0" placeholder={terminalLock ? '' : 'type a command in here..'} spellcheck="false"/>
                     </div>
                 </div>
             </div>
