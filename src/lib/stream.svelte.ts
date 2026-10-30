@@ -44,6 +44,7 @@ export const s = $state({
     isShaking: false,
     showJumpscare: false,
     mutationIndex: 0,
+    isEnded: false,
 });
 
 
@@ -123,6 +124,23 @@ export function startTimeStampDrift(
         setCommits(next);
         triggerFlicker();
     }, 22000);
+}
+
+export function checkEnding(
+    getCommits:()=> Commit[],
+    onEnd: ()=> void
+) {
+    setInterval(()=> {
+        if (s.isEnded){
+            return;
+        }
+        const commits =  getCommits();
+        const idx = commits.findIndex(c=>c.author === 'unknown');
+        if (idx === 0 && s.mutationIndex >= mutations.length - 1){
+            s.isEnded = true;
+            onEnd();
+        }
+    }, 3000);
 }
 
 export function setCommandOutput(v: string | null){
