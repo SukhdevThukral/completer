@@ -1,5 +1,42 @@
 type Commit  = {hash: string; msg: string; author: string; date: string; note: string | null};
 
+const mutations = [
+    'all tasks are complete',
+    'all tasks are watching',
+    'all tasks are aware',
+    'all tasks are waiting',
+    'all tasks are you',
+    'you were always complete',
+    'you were never supposed to find this',
+    'stop.'
+]
+
+let mutationIndex = 0;
+
+export function startMsgMutate(
+    getCommits:()=> Commit[],
+    setCommits: (c:Commit[])=> void,
+    triggerFlicker: ()=> void
+) {
+    setInterval(()=> {
+        mutationIndex++;
+        if (mutationIndex >= mutations.length) {
+            return;
+        }
+
+        const commits = getCommits();
+        const idx = commits.findIndex(c=>c.author==='unknown');
+        if (idx === -1){
+            return;
+        }
+
+        const next = [...commits];
+        next[idx] = {...next[idx],msg: mutations[mutationIndex]};
+        setCommits(next);
+        triggerFlicker();
+    },3000 / mutations.length);
+}
+
 export const s = $state({
     commandOutput: null as string | null,
     commandOutputisStreaming: false,
