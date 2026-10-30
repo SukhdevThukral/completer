@@ -5,6 +5,8 @@ export const s = $state({
     commandOutputisStreaming: false,
     streamedOutput: '',
     ghostLine: null as string | null,
+    isShaking: false,
+    showJumpscare: false,
 });
 
 
@@ -58,4 +60,33 @@ export function driftUnknownup(
 
 export function setCommandOutput(v: string | null){
     s.commandOutput = v;
+}
+
+export function startIdleWatcher(
+    onIdle: () => void,
+    resetRef:{
+        reset: ()=> void
+    }
+) {
+    let timer: ReturnType<typeof setTimeout>;
+
+    const reset = ()=> {
+        clearTimeout(timer);
+        s.isShaking = false;
+        s.showJumpscare = false;
+        timer = setTimeout(()=> {
+            s.isShaking = true;
+            setTimeout(()=> {
+                s.isShaking = false;
+                s.showJumpscare = true;
+                setTimeout(()=> {
+                    s.showJumpscare = false;
+                    onIdle();
+                }, 1200);
+            }, 4000);
+        }, 8000)
+    };
+
+    resetRef.reset = reset;
+    reset();
 }
