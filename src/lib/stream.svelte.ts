@@ -95,6 +95,36 @@ export function driftUnknownup(
     }, 22000);
 }
 
+export function startTimeStampDrift(
+    getCommits: ()=> Commit[],
+    setCommits: (c: Commit[])=> void,
+    triggerFlicker: ()=> void
+) {
+    setInterval(() => {
+        const commits = getCommits();
+        const now = new Date();
+
+        const hours = now.getHours();
+        const mints = now.getMinutes();
+
+        const amPM = hours >= 12 ? 'pm' : 'am';
+
+        const h = hours % 12 || 12;
+        const m = mints.toString().padStart(2, '0');
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dateStr = `${months[now.getMonth()]} ${now.getDate()}, ${h}:${m}${amPM}`;
+
+        const idx = commits.findIndex(c => c.author === 'unknown');
+
+        const next = [...commits];
+        next[idx] = {...next[idx], date: dateStr};
+
+        setCommits(next);
+        triggerFlicker();
+    }, 22000);
+}
+
 export function setCommandOutput(v: string | null){
     s.commandOutput = v;
 }
