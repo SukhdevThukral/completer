@@ -132,6 +132,21 @@
     let applicVisibl = $state(false);
 
     onMount(()=> {
+        const audio = new Audio('/ambient_music.mp3');
+        audio.loop = true;
+        audio.volume = 0.4;
+        audio.play().catch(() => {});
+
+        const startingAudio = ()=> {
+            audio.play().catch(()=>{});
+
+            window.removeEventListener('click', startingAudio);
+            window.removeEventListener('keydown', startingAudio);
+        };
+
+        window.addEventListener('click', startingAudio);
+        window.addEventListener('keydown', startingAudio);
+
         setTimeout(()=> {
             splashFading = true;
             setTimeout(()=> {
@@ -276,7 +291,7 @@
     .jumpscareFlash{
         animation: flashIn 1.2s steps(1) forwards;
     }
-    
+
     @keyframes fadeIn{
         from{opacity: 0;}
         to{opacity: 1;}
