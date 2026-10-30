@@ -1,56 +1,49 @@
-# sv
+# <img src="static/logo.png" alt="logo" width="180" align="center" /> COMPLETER
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+>_a browser based git "log" replica but hollup somethings wrong w it._
+<br/>
+<img width="1021" height="654" alt="image" src="https://github.com/user-attachments/assets/fec99e5b-0af9-4129-9567-468eb70f8ed3" />
 
-## Creating a project
+<br>
+<br>
 
-If you're seeing this, you've probably already done this step. Congrats!
+## what ts is
 
-```sh
-# create a new project
-npx sv create my-app
+youre an investigator basically reviewing a "git log" for a project called "completer" -  which was supposed to be a simple task automation tool, except the commits are wrong, the timestamps are also wrong and even the author is wrong
+
+so its basically an experience where u can try to hassle but its basically pointless
+
+## how ts was built
+
+and for this, ive used [SvelteKit](https://svelte.dev/) WHICH WAS OH GOD I SWEAR EQUIVALENT OF HELL i struggled so much adapting to the syntax [Typescript](https://www.typescriptlang.org/) for all the reactive states, UI, and etc except the ambient music loop, and again as always, Tailwind CSS for the atmosphere and the style. so basically zero runtime dependencies besides Svelte itself :D
+
+## how ts works
+
+- git log - ts the main screen and commits load in one by one soyou click any commit with a note to expand it and dont try to hover over the red one.
+
+- terminal - type commands at the bottom input, (ask for "help") for detailed command options and yes u can fidget w them
+
+- idle state - if you stop interatcting the terminal starts tweaking (u gotta try dat:D)
+
+## running ts locally
+
+you'll NEED [Node.js](https://nodejs.org/en)
+
 ```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@1.1.1 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:none" --install npm ./
-```
-
-## Adding features
-
-Add features to your project with `sv add`:
-
-```sh
-npx sv add
-```
-
-For example, to add Tailwind CSS:
-
-```sh
-npx sv add tailwindcss
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+then you can just open the localhost link with the port 5173 and yay thats your entire setup.
 
-To create a production version of your app:
+**things worth knowing while testing:**
+ - the radio is using WebSpeech API and specifically looks for "Google UK English Male" / "David" and if neither is available on your sytem the ghost will still reply just visually js without the voice.
+ - seal logic requires the ghost to be weakened (8s window after the radio reply) AND in the same room as you, AND YOU NEED TO click the anchor hotspot.
 
-```sh
-npm run build
-```
+## assets
 
-You can preview the production build with `npm run preview`.
+i made the logo by myself in Canva and the ambient music idont even remember where igot it from :(
+<img width="500" height="500" alt="I WAS PRESENTING THE OTHER TAB OH GOD (1)" src="https://github.com/user-attachments/assets/fa1601e8-4334-4ef4-9362-712c2ddfc8f1" />
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+headphones are recommended btw.
